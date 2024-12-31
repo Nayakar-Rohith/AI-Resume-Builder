@@ -2,7 +2,7 @@ const https=require('https');
 const app=require('./app');
 const fs=require('fs');
 require('dotenv').config()
-const PORT=process.env.PORT || 8000;
+const PORT=process.env.PORT || 4000;
 
 const server=https.createServer({
     key:fs.readFileSync('key.pem'),
