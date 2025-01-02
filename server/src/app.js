@@ -1,80 +1,140 @@
-const express=require('express');
-const api=require('../routes/api')
-const app=express();
-const helmet=require('helmet');
-const passport=require('passport');
-const {Strategy}=require('passport-google-oauth20')
-const cookieSession=require('cookie-session');
-const cors=require('cors');
+const express = require('express');
+const helmet = require('helmet');
+const passport = require('passport');
+const { Strategy } = require('passport-google-oauth20');
+const cookieSession = require('cookie-session');
+const cors = require('cors');
+const api = require('../routes/api');
 
-require('dotenv').config()
+require('dotenv').config();
 
-const config={
-    CLIENT_ID:process.env.CLIENT_ID,
-    CLIENT_SECRET:process.env.CLIENT_SECRET,
-    COOKIE_KEY_1:process.env.COOKIE_KEY_1,
-    COOKIE_KEY_2:process.env.COOKIE_KEY_2,
-}
+const app = express();
+
+// Configuration object
+const config = {
+    CLIENT_ID: process.env.CLIENT_ID,
+    CLIENT_SECRET: process.env.CLIENT_SECRET,
+    COOKIE_KEY_1: process.env.COOKIE_KEY_1,
+    COOKIE_KEY_2: process.env.COOKIE_KEY_2,
+};
+
+// 1. Security Middleware (should come first)
 app.use(helmet());
+
+// 2. Parse JSON bodies (before any routes that need it)
+app.use(express.json());
+
+// 3. Session configuration (before passport)
 app.use(cookieSession({
-    name:'session',
-    maxAge:24*60*60*1000,
-    keys:[config.COOKIE_KEY_1,config.COOKIE_KEY_2]
-}))
-passport.serializeUser((user,done)=>{
-    done(null,user);
-})
-passport.deserializeUser((obj,done)=>{
-    done(null,obj);
-})
+    name: 'session',
+    maxAge: 24 * 60 * 60 * 1000,
+    keys: [config.COOKIE_KEY_1, config.COOKIE_KEY_2],
+    secure: false,
+    sameSite:'none'
+}));
+
+// 4. Initialize Passport and Session
 app.use(passport.initialize());
-app.use(passport.session())
-app.use(
-    cors({
-      origin: 'https://localhost:3000', // Frontend URL
-      methods: ['GET', 'POST'], // Allow methods you use
-      credentials: true, // Include cookies if needed
-    })
-  );
+app.use(passport.session());
 
-function verifyCallback(accessToken, refreshToken, profile, done){
+// 5. Passport configuration
+passport.serializeUser((user, done) => {
+    console.log('User in serializeUser', user._json);
+    done(null, user._json);
+});
+
+passport.deserializeUser((obj, done) => {
+    console.log('User in deserializeUser', obj);
+    done(null, obj);
+});
+
+function verifyCallback(accessToken, refreshToken, profile, done) {
     console.log('Google Profile', profile);
-    done(null,profile);
+    done(null, profile);
 }
-passport.use(new Strategy({
-    callbackURL:'/auth/google/callback',
-    clientID:config.CLIENT_ID,
-    clientSecret:config.CLIENT_SECRET
-},verifyCallback))
 
-function authenticateUser(req,res,next){
-    let loggedin=req.user && req.isAuthenticated();
-    if(!loggedin){
-        res.status(401).json({
+passport.use(new Strategy({
+    callbackURL: '/auth/google/callback',
+    clientID: config.CLIENT_ID,
+    clientSecret: config.CLIENT_SECRET
+}, verifyCallback));
+
+// 6. CORS configuration (before routes)
+app.use(cors({
+    origin: ['https://localhost:3000', 'http://localhost:3000'],
+    methods: ['GET', 'POST'],
+    credentials: true,
+}));
+
+// 7. Authentication middleware
+function authenticateUser(req, res, next) {
+    const loggedin = req.user && req.isAuthenticated();
+    if (!loggedin) {
+        return res.status(401).json({
             "Error": "User is not logged in...."
-        })
+        });
     }
     next();
 }
-app.get('/auth/google',passport.authenticate('google',{
-    scope:['email']
-}))
-app.get('/auth/google/callback',passport.authenticate('google',{
-    failureRedirect:'/login_failure',
-    successRedirect:'https://localhost:3000',
-    session:true,
-}),(req,res)=>{
-    console.log('Google called us back!!!!!')
+
+// 8. Auth routes
+app.get('/auth/google', passport.authenticate('google', {
+    scope: ['email']
+}));
+
+// app.get('/auth/google/callback', passport.authenticate('google', {
+//     failureRedirect: '/login_failure',
+//     successRedirect: 'http://localhost:3000',
+//     session: true,
+// }), (req, res) => {
+//     console.log('Google called us back!!!!!');
+// });
+app.get('/auth/google/callback', 
+    passport.authenticate('google', {
+        failureRedirect: '/login_failure',
+        session: true,
+    }), 
+    (req, res) => {
+        if (!req.user) {
+            return res.redirect('/login_failure');
+        }
+        res.redirect('http://localhost:3000');
+    }
+);
+
+app.get('/auth/logout', (req, res) => {
+    req.session = null;  // Destroy the session
+    req.logout((err) => {
+        if (err) {
+            return res.status(500).json({ error: 'Error logging out' });
+        }
+        res.redirect('http://localhost:3000');
+    });
 });
-app.get('/auth/logout',(req,res)=>{
-    req.logout();
-    return res.redirect('https://localhost:3000');
-})
-app.get('/login_failure',(req,res)=>{
-    console.log('Failed to login...........')
-})
-app.use(express.json());
 
-app.use('/v1',authenticateUser,api)
+app.get('/login_failure', (req, res) => {
+    console.log('Failed to login...........');
+});
 
-module.exports=app;
+app.get('/v1/login_status', (req, res) => {
+    console.log("req.isAuthenticated()", req.isAuthenticated());
+    console.log("req.session", req.session);
+    console.log("req.body", req.body);
+    
+    if (req.isAuthenticated() && req.user) {
+        return res.status(200).json({
+            authenticated: true,
+            user: req.user,
+        });
+    }
+    
+    res.status(200).json({
+        authenticated: false,
+        user: null
+    });
+});
+
+// 9. Protected API routes (should come last)
+app.use('/v1', authenticateUser, api);
+
+module.exports = app;
