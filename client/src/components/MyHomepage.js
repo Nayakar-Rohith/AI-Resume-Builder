@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useAuth } from '../AuthContext'; 
 
 const Myhomepage = () => {
   const [resumeType, setResumeType] = useState('new');
@@ -66,6 +65,7 @@ const Myhomepage = () => {
                 <label className="block font-semibold mb-2">Upload Resume:</label>
                 <input
                   type="file"
+                  value={uploadedFile}
                   className="block w-full text-sm text-gray-500 border rounded-lg"
                   onChange={handleFileUpload}
                 />
