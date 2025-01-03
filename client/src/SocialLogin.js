@@ -80,7 +80,7 @@ const SocialLogin = () => {
         
         <div className="mt-6 text-center text-sm text-gray-500">
           By continuing, you agree to our
-          <a href="#" className="text-blue-600 hover:underline ml-1">Terms of Service</a>
+          <a href="/" className="text-blue-600 hover:underline ml-1">Terms of Service</a>
         </div>
       </div>
     </div>
