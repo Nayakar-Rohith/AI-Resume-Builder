@@ -3,11 +3,16 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon src/server.js"
+    "test": "jest",
+    "test-watch": "jest --watch",
+    "start": "nodemon src/server.js",
+    "watch": "nodemon src/server.js"
   },
   "author": "",
   "license": "ISC",
+  "jest": {
+    "testEnvironment": "node"
+  },
   "description": "",
   "dependencies": {
     "cookie-session": "^2.1.0",
@@ -17,12 +22,14 @@
     "fs": "^0.0.1-security",
     "helmet": "^8.0.0",
     "mammoth": "^1.8.0",
+    "mongoose": "^8.9.3",
     "passport": "^0.5.3",
     "passport-google-oauth20": "^2.0.0",
     "pdf-lib": "^1.17.1",
     "puppeteer": "^23.10.4"
   },
   "devDependencies": {
+    "jest": "^29.7.0",
     "nodemon": "^3.1.9"
   }
 }

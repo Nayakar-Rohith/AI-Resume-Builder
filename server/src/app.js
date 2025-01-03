@@ -5,7 +5,7 @@ const { Strategy } = require('passport-google-oauth20');
 const cookieSession = require('cookie-session');
 const cors = require('cors');
 const api = require('../routes/api');
-
+const UserModel=require('../models/users.mongo')
 require('dotenv').config();
 
 const app = express();
@@ -37,15 +37,35 @@ app.use(cookieSession({
 app.use(passport.initialize());
 app.use(passport.session());
 
-// 5. Passport configuration
-passport.serializeUser((user, done) => {
-    console.log('User in serializeUser', user._json);
-    done(null, user._json);
+passport.serializeUser(async (user, done) => {
+    try {
+        // Check if the user exists in the database
+        let existingUser = await UserModel.findOne({ _id: user._json.sub }); // Use sub as the unique ID
+        if (!existingUser) {
+            // Create a new user if they don't exist
+            const newUser = new UserModel({
+                _id: user._json.sub, // Set _id to sub
+                email: user._json.email,
+                name: user._json.name || '',
+                resumeOptimizations: 0, // Initialize to 0
+            });
+            existingUser = await newUser.save();
+        }
+        done(null, existingUser._id); // Serialize the user's ID
+    } catch (error) {
+        done(error, null);
+    }
 });
 
-passport.deserializeUser((obj, done) => {
-    console.log('User in deserializeUser', obj);
-    done(null, obj);
+passport.deserializeUser(async (id, done) => {
+    try {
+        // Fetch the user by _id from the database
+        console.log('Hello, this is the ID in deserializer: ', id);
+        const user = await UserModel.findById(id); // Use id directly
+        done(null, user);
+    } catch (error) {
+        done(error, null);
+    }
 });
 
 function verifyCallback(accessToken, refreshToken, profile, done) {
@@ -135,6 +155,7 @@ app.get('/v1/login_status', (req, res) => {
 });
 
 // 9. Protected API routes (should come last)
-app.use('/v1', authenticateUser, api);
+// app.use('/v1', authenticateUser, api);
+app.use('/v1', api);
 
 module.exports = app;
