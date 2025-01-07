@@ -37,7 +37,7 @@ router.get('/:email', async (req, res) => {
 router.get('/', async (req, res) => {
     const { skip, limit } = req.query;
     try {
-        const users = await getAllUsers(parseInt(skip), parseInt(limit));
+        const users = await getAllUsers();
         res.status(200).json(users);
     } catch (error) {
         res.status(400).json({ error: error.message });
