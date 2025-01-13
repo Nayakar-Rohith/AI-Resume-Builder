@@ -21,7 +21,7 @@ const Myhomepage = () => {
       <header className="flex justify-between items-center bg-white p-4 shadow-md">
         <h1 className="text-xl font-bold">My App</h1>
         <button
-          onClick={() => (window.location.href = 'https://localhost:4000/auth/logout')}
+          onClick={() => (window.location.href = 'auth/logout')}
           className="bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600"
         >
           Logout

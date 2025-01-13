@@ -12,7 +12,7 @@ function App() {
     // Call the login status endpoint
     const checkLoginStatus = async () => {
       try {
-        const response = await axios.get('https://localhost:4000/v1/login_status', {
+        const response = await axios.get('v1/login_status', {
           credentials: 'include',
           withCredentials: true
         });

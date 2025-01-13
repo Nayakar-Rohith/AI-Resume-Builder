@@ -6,6 +6,7 @@ const cookieSession = require('cookie-session');
 const cors = require('cors');
 const api = require('../routes/api');
 const UserModel=require('../models/users.mongo')
+const path=require('path')
 require('dotenv').config();
 
 const app = express();
@@ -30,7 +31,7 @@ app.use(cookieSession({
     maxAge: 24 * 60 * 60 * 1000,
     keys: [config.COOKIE_KEY_1, config.COOKIE_KEY_2],
     secure: false,
-    sameSite:'none'
+    // sameSite:'none'
 }));
 
 // 4. Initialize Passport and Session
@@ -81,7 +82,7 @@ passport.use(new Strategy({
 
 // 6. CORS configuration (before routes)
 app.use(cors({
-    origin: ['https://localhost:3000', 'http://localhost:3000'],
+    origin: ['https://localhost:3000', 'http://localhost:3000', 'http://localhost:4000'],
     methods: ['GET', 'POST'],
     credentials: true,
 }));
@@ -118,7 +119,7 @@ app.get('/auth/google/callback',
         if (!req.user) {
             return res.redirect('/login_failure');
         }
-        res.redirect('http://localhost:3000');
+        res.redirect('https://localhost:4000');
     }
 );
 
@@ -128,7 +129,7 @@ app.get('/auth/logout', (req, res) => {
         if (err) {
             return res.status(500).json({ error: 'Error logging out' });
         }
-        res.redirect('http://localhost:3000');
+        res.redirect('https://localhost:4000');
     });
 });
 
@@ -157,5 +158,12 @@ app.get('/v1/login_status', (req, res) => {
 // 9. Protected API routes (should come last)
 // app.use('/v1', authenticateUser, api);
 app.use('/v1', api);
+// Serve static files from the React build
+const publicPath = path.join(__dirname,'..', 'public');
+app.use(express.static(publicPath));
 
+// Catch-all handler to serve React's index.html
+app.get('/*', (req, res) => {
+    res.sendFile(path.join(publicPath, 'index.html'));
+});
 module.exports = app;

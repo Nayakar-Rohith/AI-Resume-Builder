@@ -28,7 +28,7 @@ const SocialLogin = () => {
   const handleLogin = async (provider) => {
     try {
       setLoading(true);
-      window.location.href = "https://localhost:4000/auth/google";
+      window.location.href = "auth/google";
       // const response = await fetch(`https://localhost:4000/auth/${provider}`, {
       //   method: 'GET',
       //   credentials: 'include',

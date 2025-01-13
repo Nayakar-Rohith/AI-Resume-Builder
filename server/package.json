@@ -5,8 +5,8 @@
   "scripts": {
     "test": "jest",
     "test-watch": "jest --watch",
-    "start": "nodemon src/server.js",
-    "watch": "nodemon src/server.js"
+    "start": "node src/server.js",
+    "watch": "node src/server.js"
   },
   "author": "",
   "license": "ISC",
