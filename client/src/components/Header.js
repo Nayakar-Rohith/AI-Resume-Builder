@@ -1,7 +1,7 @@
 import React from 'react'
 
 function Header() {
-    handleLogout = async () => { 
+    const handleLogout = async () => { 
         window.location.href = 'auth/logout';
         // await axios.get('auth/logout',{withCredentials: true});
       }
