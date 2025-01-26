@@ -125,12 +125,15 @@ app.get('/auth/google/callback',
 
 app.get('/auth/logout', (req, res) => {
     req.session = null;  // Destroy the session
+    console.log('logout initiated out');
     req.logout((err) => {
+        console.log('Error logging out', err);
         if (err) {
             return res.status(500).json({ error: 'Error logging out' });
         }
-        res.redirect('https://localhost:4000');
     });
+    res.redirect('https://localhost:4000');
+
 });
 
 app.get('/login_failure', (req, res) => {
@@ -156,8 +159,8 @@ app.get('/v1/login_status', (req, res) => {
 });
 
 // 9. Protected API routes (should come last)
-// app.use('/v1', authenticateUser, api);
-app.use('/v1', api);
+app.use('/v1', authenticateUser, api);
+// app.use('/v1', api);
 // Serve static files from the React build
 const publicPath = path.join(__dirname,'..', 'public');
 app.use(express.static(publicPath));
