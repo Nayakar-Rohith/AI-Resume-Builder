@@ -5,7 +5,7 @@ const { Strategy } = require('passport-google-oauth20');
 const cookieSession = require('cookie-session');
 const cors = require('cors');
 const api = require('../routes/api');
-const UserModel=require('../models/users.mongo')
+const UserModel=require('../models/users/users.mongo')
 const path=require('path')
 require('dotenv').config();
 
@@ -61,7 +61,6 @@ passport.serializeUser(async (user, done) => {
 passport.deserializeUser(async (id, done) => {
     try {
         // Fetch the user by _id from the database
-        console.log('Hello, this is the ID in deserializer: ', id);
         const user = await UserModel.findById(id); // Use id directly
         done(null, user);
     } catch (error) {
@@ -103,13 +102,7 @@ app.get('/auth/google', passport.authenticate('google', {
     scope: ['email']
 }));
 
-// app.get('/auth/google/callback', passport.authenticate('google', {
-//     failureRedirect: '/login_failure',
-//     successRedirect: 'http://localhost:3000',
-//     session: true,
-// }), (req, res) => {
-//     console.log('Google called us back!!!!!');
-// });
+
 app.get('/auth/google/callback', 
     passport.authenticate('google', {
         failureRedirect: '/login_failure',
@@ -159,8 +152,8 @@ app.get('/v1/login_status', (req, res) => {
 });
 
 // 9. Protected API routes (should come last)
-app.use('/v1', authenticateUser, api);
-// app.use('/v1', api);
+// app.use('/v1', authenticateUser, api);
+app.use('/v1', api);
 // Serve static files from the React build
 const publicPath = path.join(__dirname,'..', 'public');
 app.use(express.static(publicPath));

@@ -5,7 +5,7 @@ const {
     getAllUsers,
     incrementResumeOptimizations,
     deleteUser,
-} = require('../../models/users.model');
+} = require('../../models/users/users.model');
 
 const router = express.Router();
 
